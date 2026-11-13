@@ -48,7 +48,7 @@ public class MenuPrincipalFrame extends JFrame {
  
         if (permisos.puedeVerMesas(usuario)) {
             JMenu menuMesas = new JMenu("Mesas");
-            menuMesas.add(crearItem("Asignar mesa", e -> enConstruccion("Mesas")));
+            menuMesas.add(crearItem("Asignar mesa", e -> new MesasFrame().setVisible(true)));
             barra.add(menuMesas);
         }
  
