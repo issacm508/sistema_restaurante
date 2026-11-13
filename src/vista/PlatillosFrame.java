@@ -28,7 +28,7 @@ public class PlatillosFrame extends JFrame {
  
     public PlatillosFrame() {
         setTitle("Platillos");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(680, 400);
         setLocationRelativeTo(null);  
  
