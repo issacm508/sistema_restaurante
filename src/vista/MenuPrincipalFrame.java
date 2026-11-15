@@ -42,7 +42,7 @@ public class MenuPrincipalFrame extends JFrame {
             JMenu menuAdmin = new JMenu("Administracion");
             menuAdmin.add(crearItem("Platillos", e -> new PlatillosFrame().setVisible(true)));
             menuAdmin.add(crearItem("Usuarios y roles", e -> enConstruccion("Usuarios y roles")));
-            menuAdmin.add(crearItem("Reportes", e -> enConstruccion("Reportes")));
+            menuAdmin.add(crearItem("Reportes", e -> new ReportesFrame().setVisible(true)));
             barra.add(menuAdmin);
         }
  
@@ -65,9 +65,10 @@ public class MenuPrincipalFrame extends JFrame {
         }
  
         if (permisos.puedeCobrar(usuario)) {
-            JMenu menuCaja = new JMenu("Caja");
-            menuCaja.add(crearItem("Cobrar pedido", e -> enConstruccion("Caja")));
-            barra.add(menuCaja);
+        JMenu menuCaja = new JMenu("Caja");
+        menuCaja.add(crearItem("Cobrar pedido", e -> new CajaFrame().setVisible(true)));
+        barra.add(menuCaja);
+        
         }
  
         JMenu menuSesion = new JMenu("Sesion");
