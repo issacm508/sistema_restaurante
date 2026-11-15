@@ -54,7 +54,7 @@ public class MenuPrincipalFrame extends JFrame {
  
         if (permisos.puedeVerPedidos(usuario)) {
             JMenu menuPedidos = new JMenu("Pedidos");
-            menuPedidos.add(crearItem("Registrar pedido", e -> enConstruccion("Pedidos")));
+            menuPedidos.add(crearItem("Registrar pedido", e -> new NuevoPedidoFrame(usuario).setVisible(true)));
             barra.add(menuPedidos);
         }
  
