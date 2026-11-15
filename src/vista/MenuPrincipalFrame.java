@@ -60,7 +60,7 @@ public class MenuPrincipalFrame extends JFrame {
  
         if (permisos.puedeVerCocina(usuario)) {
             JMenu menuCocina = new JMenu("Cocina");
-            menuCocina.add(crearItem("Pedidos en cocina", e -> enConstruccion("Cocina")));
+           menuCocina.add(crearItem("Pedidos en cocina", e -> new CocinaFrame().setVisible(true)));
             barra.add(menuCocina);
         }
  

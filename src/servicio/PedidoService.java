@@ -6,21 +6,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import modelo.DetallePedido;
+import modelo.EstadosPedido;
 import modelo.Mesa;
 import modelo.Mesero;
 import modelo.Pedido;
 import modelo.Usuario;
 
-/**
- * Capa de servicio: reglas de negocio de los pedidos.
- */
+// Capa de servicio: reglas de negocio de los pedidos.
+
 public class PedidoService {
 
     private final PedidoDAO pedidoDAO = new PedidoDAO();
     private final MeseroDAO meseroDAO = new MeseroDAO();
     private final MesaService mesaService = new MesaService();
 
-    /** Solo las mesas libres se pueden usar para un pedido nuevo. */
+    // Solo las mesas libres se pueden usar para un pedido nuevo. */
     public List<Mesa> obtenerMesasDisponibles() throws SQLException {
         List<Mesa> disponibles = new ArrayList<>();
         for (Mesa m : mesaService.obtenerTodas()) {
@@ -31,10 +31,7 @@ public class PedidoService {
         return disponibles;
     }
 
-    /**
-     * Registra un pedido a nombre del usuario que inicio sesion.
-     * Lanza IllegalArgumentException con un mensaje claro si no se cumple alguna regla.
-     */
+     // Registra un pedido a nombre del usuario que inicio sesion.Lanza IllegalArgumentException con un mensaje claro si no se cumple alguna regla.
     public Pedido registrar(Usuario usuario, Mesa mesa, List<DetallePedido> detalles) throws SQLException {
         if (mesa == null) {
             throw new IllegalArgumentException("Selecciona una mesa");
@@ -66,5 +63,32 @@ public class PedidoService {
 
         pedidoDAO.registrar(pedido);
         return pedido;
+    }
+
+    // Los pedidos que la cocina todavia tiene que preparar. 
+    public List<Pedido> obtenerPedidosEnProceso() throws SQLException {
+        return pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO);
+    }
+
+    //La cocina marca un pedido como listo (Completado). 
+    public void marcarComoCompletado(Pedido pedido) throws SQLException {
+        if (pedido == null) {
+            throw new IllegalArgumentException("Selecciona un pedido de la tabla");
+        }
+
+        // Regla: solo se puede completar un pedido que siga En Proceso
+        // (otra persona de la cocina pudo haberlo completado ya).
+        boolean sigueEnProceso = false;
+        for (Pedido p : pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO)) {
+            if (p.getId() == pedido.getId()) {
+                sigueEnProceso = true;
+                break;
+            }
+        }
+        if (!sigueEnProceso) {
+            throw new IllegalArgumentException("El pedido #" + pedido.getId() + " ya no esta en proceso");
+        }
+
+        pedidoDAO.actualizarEstado(pedido.getId(), EstadosPedido.COMPLETADO);
     }
 }
