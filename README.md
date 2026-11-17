@@ -11,8 +11,7 @@ Proyecto #8 del curso de Programación Orientada a Objetos: aplicación de escri
 - Cocina: lista de pedidos en proceso que se actualiza sola cada 10 segundos; permite marcarlos como completados.
 - Caja: cobro de pedidos.
 - Reportes: ventas por día, platillos más vendidos, ventas por mesero, ingresos por método de pago y pedidos por estado.
-- Usuarios y roles: el Super Administrador agrega, edita y elimina usuarios y les asigna un rol.
-
+- Usuarios y roles: el Super Administrador agrega, edita y elimina usuarios y les asigna un rol.           
 
 ## Arquitectura por capas
 
@@ -82,9 +81,9 @@ Vienen en la tabla `usuarios` del archivo SQL:
 
 ## Pruebas unitarias (JUnit 5)
 
-Hay 61 pruebasen `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos y platillos).
+Hay 60 pruebasen `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos y platillos).
 
-Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **61/61 en verde**.
+Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **60/60 en verde**.
 
 ## Notas y limitaciones conocidas
 
