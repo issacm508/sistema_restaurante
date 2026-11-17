@@ -8,7 +8,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import modelo.Usuario;
 import servicio.PermisoService;
@@ -83,12 +82,6 @@ public class MenuPrincipalFrame extends JFrame {
         JMenuItem item = new JMenuItem(texto);
         item.addActionListener(accion);
         return item;
-    }
- 
-    private void enConstruccion(String modulo) {
-        JOptionPane.showMessageDialog(this,
-                "El modulo \"" + modulo + "\" se esta desarrollando.",
-                "En construccion", JOptionPane.INFORMATION_MESSAGE);
     }
  
     private void cerrarSesion() {
