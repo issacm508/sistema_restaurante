@@ -41,7 +41,7 @@ public class MenuPrincipalFrame extends JFrame {
         if (permisos.puedeAdministrar(usuario)) {
             JMenu menuAdmin = new JMenu("Administracion");
             menuAdmin.add(crearItem("Platillos", e -> new PlatillosFrame().setVisible(true)));
-            menuAdmin.add(crearItem("Usuarios y roles", e -> enConstruccion("Usuarios y roles")));
+            menuAdmin.add(crearItem("Usuarios y roles", e -> new UsuariosFrame(usuario).setVisible(true)));
             menuAdmin.add(crearItem("Reportes", e -> new ReportesFrame().setVisible(true)));
             barra.add(menuAdmin);
         }
