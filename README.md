@@ -11,6 +11,8 @@ Proyecto #8 del curso de Programación Orientada a Objetos: aplicación de escri
 - Cocina: lista de pedidos en proceso que se actualiza sola cada 10 segundos; permite marcarlos como completados.
 - Caja: cobro de pedidos.
 - Reportes: ventas por día, platillos más vendidos, ventas por mesero, ingresos por método de pago y pedidos por estado.
+- Usuarios y roles: el Super Administrador agrega, edita y elimina usuarios y les asigna un rol.
+
 
 ## Arquitectura por capas
 
@@ -80,16 +82,16 @@ Vienen en la tabla `usuarios` del archivo SQL:
 
 ## Pruebas unitarias (JUnit 5)
 
-Hay 51 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos y platillos).
+Hay 61 pruebasen `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos y platillos).
 
-Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **51/51 en verde**.
+Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **61/61 en verde**.
 
 ## Notas y limitaciones conocidas
 
 - Las contraseñas se guardan en texto plano en la tabla `usuarios` (datos de ejemplo del curso). Mejora pendiente: guardarlas con hash.
 - La contraseña de MySQL está escrita en `ConexionBD.java`; no debe reutilizarse una contraseña personal.
 - Los diagramas ER y UML entregados anteriormente no reflejan los últimos cambios de la base de datos.
-- Pendiente: CRUD de usuarios y edición/borrado de platillos.
+- Pendiente: edición y borrado de platillos.
 
 ## Equipo
 
