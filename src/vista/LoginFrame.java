@@ -1,6 +1,12 @@
 package vista;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -8,14 +14,20 @@ import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JTextField;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.text.JTextComponent;
 import modelo.Usuario;
 import servicio.AuthService;
+import servicio.UsuariosRecientesService;
 
 /**
  * Capa de vista: pantalla de inicio de sesion.
@@ -25,7 +37,10 @@ public class LoginFrame extends JFrame {
 
     private final AuthService authService = new AuthService();
 
-    private final JTextField txtUsuario = new JTextField(15);
+    private final UsuariosRecientesService recientes = new UsuariosRecientesService();
+
+    // Lista editable: se puede elegir un usuario recordado o escribir uno nuevo
+    private final JComboBox<String> cmbUsuario = new JComboBox<>();
     private final JPasswordField txtPassword = new JPasswordField(15);   // oculta lo que se escribe
 
     public LoginFrame() {
@@ -62,7 +77,7 @@ public class LoginFrame extends JFrame {
         gbc.gridy = 0;
         formulario.add(etiqueta("Usuario:"), gbc);
         gbc.gridx = 1;
-        formulario.add(txtUsuario, gbc);
+        formulario.add(cmbUsuario, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -70,8 +85,9 @@ public class LoginFrame extends JFrame {
         gbc.gridx = 1;
         formulario.add(txtPassword, gbc);
 
-        Tema.estilizarCampo(txtUsuario);
+        configurarListaUsuarios();
         Tema.estilizarCampo(txtPassword);
+        cmbUsuario.setPreferredSize(new Dimension(txtPassword.getPreferredSize()));   // mismo ancho y alto
         contenido.add(formulario, BorderLayout.CENTER);
 
         // --- boton ---
@@ -86,8 +102,71 @@ public class LoginFrame extends JFrame {
         btnIngresar.addActionListener(e -> iniciarSesion());   // evento del boton
         getRootPane().setDefaultButton(btnIngresar);           // Enter tambien ejecuta el boton
 
+        // Al abrir la ventana, el cursor queda en el campo de usuario
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                cmbUsuario.getEditor().getEditorComponent().requestFocusInWindow();
+            }
+        });
+
         pack();                        // ajusta el tamano al contenido (incluye el logo)
         setLocationRelativeTo(null);   // centra la ventana
+    }
+
+    /** Llena la lista con los usuarios recordados y le da el estilo del tema. */
+    private void configurarListaUsuarios() {
+        // Flecha y colores de la lista (primero la apariencia, luego se hace editable)
+        cmbUsuario.setUI(new BasicComboBoxUI() {
+            @Override
+            protected javax.swing.JButton createArrowButton() {
+                BasicArrowButton flecha = new BasicArrowButton(BasicArrowButton.SOUTH,
+                        Tema.SUPERFICIE, Tema.SUPERFICIE, Tema.PRIMARIO, Tema.SUPERFICIE);
+                flecha.setBorder(BorderFactory.createEmptyBorder());
+                return flecha;
+            }
+        });
+        cmbUsuario.setEditable(true);
+        cmbUsuario.setBackground(Tema.SUPERFICIE);
+        cmbUsuario.setForeground(Tema.TEXTO);
+        cmbUsuario.setFont(Tema.FUENTE);
+        cmbUsuario.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> lista, Object valor, int indice,
+                    boolean seleccionado, boolean foco) {
+                super.getListCellRendererComponent(lista, valor, indice, seleccionado, foco);
+                setFont(Tema.FUENTE);
+                setBackground(seleccionado ? Tema.PRIMARIO : Tema.SUPERFICIE);
+                setForeground(seleccionado ? Tema.TEXTO_SOBRE_DORADO : Tema.TEXTO);
+                return this;
+            }
+        });
+        Tema.estilizarCampo((JTextComponent) cmbUsuario.getEditor().getEditorComponent());
+
+        // Usuarios recordados: aparecen en la lista, pero el campo empieza vacio para poder escribir otro
+        for (String nombre : recientes.obtener()) {
+            cmbUsuario.addItem(nombre);
+        }
+        cmbUsuario.setSelectedItem("");
+
+        // Al hacer clic en el campo vacio se despliega la lista de usuarios recordados
+        cmbUsuario.getEditor().getEditorComponent().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (cmbUsuario.getItemCount() > 0 && !cmbUsuario.isPopupVisible() && usuarioEscrito().isEmpty()) {
+                    cmbUsuario.showPopup();
+                }
+            }
+        });
+
+        // Al elegir (o escribir y dar Enter) en la lista, el cursor pasa a la contrasena
+        cmbUsuario.addActionListener(e -> txtPassword.requestFocusInWindow());
+    }
+
+    /** El nombre que esta escrito o elegido en la lista. */
+    private String usuarioEscrito() {
+        Object valor = cmbUsuario.getEditor().getItem();
+        return valor == null ? "" : valor.toString();
     }
 
     private JLabel etiqueta(String texto) {
@@ -100,7 +179,8 @@ public class LoginFrame extends JFrame {
     private void iniciarSesion() {
         try {
             String password = new String(txtPassword.getPassword());
-            Usuario usuario = authService.login(txtUsuario.getText(), password);
+            Usuario usuario = authService.login(usuarioEscrito(), password);
+            recientes.recordar(usuario.getUsername());   // se recuerda solo si el login fue correcto
 
             JOptionPane.showMessageDialog(this,
                     "Bienvenido/a, " + usuario.getUsername() + "\nRol: " + usuario.getRol(),
@@ -114,9 +194,9 @@ public class LoginFrame extends JFrame {
             // datos vacios o credenciales incorrectas
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "No se pudo iniciar sesion", JOptionPane.WARNING_MESSAGE);
-            txtUsuario.setText("");
+            cmbUsuario.setSelectedItem("");
             txtPassword.setText("");
-            txtUsuario.requestFocusInWindow();
+            cmbUsuario.getEditor().getEditorComponent().requestFocusInWindow();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error con la base de datos: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
