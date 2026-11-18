@@ -80,7 +80,9 @@ public class LoginFrame extends JFrame {
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "No se pudo iniciar sesion", JOptionPane.WARNING_MESSAGE);
+            txtUsuario.setText("");
             txtPassword.setText("");
+            txtUsuario.requestFocusInWindow();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error con la base de datos: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);

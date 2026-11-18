@@ -81,9 +81,9 @@ Vienen en la tabla `usuarios` del archivo SQL:
 
 ## Pruebas unitarias (JUnit 5)
 
-Hay 60 pruebasen `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos y platillos).
+Hay 64 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos y platillos).
 
-Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **60/60 en verde**.
+Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **64/64 en verde**.
 
 ## Notas y limitaciones conocidas
 

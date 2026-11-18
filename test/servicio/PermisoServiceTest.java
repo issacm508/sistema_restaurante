@@ -9,7 +9,7 @@ import modelo.Usuario;
 import org.junit.jupiter.api.Test;
 
 
- //Pruebas unitarias de PermisoService: que modulo puede usar cada rol. No usan la base de datos.
+ // Pruebas unitarias de PermisoService: que modulo puede usar cada rol.No usan la base de datos.
 
 public class PermisoServiceTest {
 
@@ -24,6 +24,15 @@ public class PermisoServiceTest {
     private final Usuario mesero = conRol(Roles.MESERO, "Mesero");
     private final Usuario cocina = conRol(Roles.COCINA, "Cocina");
     private final Usuario administrador = conRol(Roles.ADMINISTRADOR, "Administrador");
+
+    @Test
+    void elSuperAdministradorTieneAccesoATodo() {
+        assertTrue(permisos.puedeAdministrar(superAdmin));
+        assertTrue(permisos.puedeVerMesas(superAdmin));
+        assertTrue(permisos.puedeVerPedidos(superAdmin));
+        assertTrue(permisos.puedeVerCocina(superAdmin));
+        assertTrue(permisos.puedeCobrar(superAdmin));
+    }
 
     @Test
     void soloElSuperAdministradorPuedeAdministrar() {

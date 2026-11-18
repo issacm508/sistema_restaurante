@@ -7,8 +7,9 @@ import modelo.Mesa;
 import org.junit.jupiter.api.Test;
 
 
-// Pruebas unitarias de MesaService: las reglas que fallan antes de consultar la base de datos.
-
+ 
+//Pruebas unitarias de MesaService: las reglas que fallan antes de consultar la base de datos.
+ 
 public class MesaServiceTest {
 
     private final MesaService servicio = new MesaService();
@@ -17,6 +18,14 @@ public class MesaServiceTest {
     void agregarRechazaTextoQueNoEsNumero() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> servicio.agregar("abc"));
+
+        assertEquals("El numero de mesa debe ser un numero entero", ex.getMessage());
+    }
+
+    @Test
+    void agregarRechazaUnTextoNulo() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> servicio.agregar(null));
 
         assertEquals("El numero de mesa debe ser un numero entero", ex.getMessage());
     }
@@ -34,6 +43,23 @@ public class MesaServiceTest {
     @Test
     void agregarRechazaUnNumeroNegativo() {
         assertThrows(IllegalArgumentException.class, () -> servicio.agregar("-4"));
+    }
+
+    @Test
+    void agregarRechazaUnEnteroMasGrandeQueElMaximo() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> servicio.agregar("1000"));
+
+        assertEquals("El numero de mesa no puede ser mayor a 999", ex.getMessage());
+    }
+
+    @Test
+    void agregarRechazaUnEnteroEnormeConUnMensajeCorrecto() {
+        // Es un numero entero valido, pero no cabe en un int: el mensaje no debe decir que no es entero
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> servicio.agregar("1234556631344"));
+
+        assertEquals("El numero de mesa no puede ser mayor a 999", ex.getMessage());
     }
 
     @Test

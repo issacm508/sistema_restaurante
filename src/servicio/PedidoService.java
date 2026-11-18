@@ -10,9 +10,8 @@ import modelo.EstadosPedido;
 import modelo.Mesa;
 import modelo.Mesero;
 import modelo.Pedido;
+import modelo.Roles;
 import modelo.Usuario;
-
-// Capa de servicio: reglas de negocio de los pedidos.
 
 public class PedidoService {
 
@@ -20,7 +19,7 @@ public class PedidoService {
     private final MeseroDAO meseroDAO = new MeseroDAO();
     private final MesaService mesaService = new MesaService();
 
-    // Solo las mesas libres se pueden usar para un pedido nuevo. */
+    // Solo las mesas libres se pueden usar para un pedido nuevo. 
     public List<Mesa> obtenerMesasDisponibles() throws SQLException {
         List<Mesa> disponibles = new ArrayList<>();
         for (Mesa m : mesaService.obtenerTodas()) {
@@ -31,7 +30,6 @@ public class PedidoService {
         return disponibles;
     }
 
-     // Registra un pedido a nombre del usuario que inicio sesion.Lanza IllegalArgumentException con un mensaje claro si no se cumple alguna regla.
     public Pedido registrar(Usuario usuario, Mesa mesa, List<DetallePedido> detalles) throws SQLException {
         if (mesa == null) {
             throw new IllegalArgumentException("Selecciona una mesa");
@@ -42,6 +40,14 @@ public class PedidoService {
 
         // Regla: el pedido lo toma un mesero. El usuario del login debe estar registrado como mesero.
         Mesero mesero = meseroDAO.buscarPorIdUsuario(usuario.getId());
+
+        // Excepcion: el Super Administrador tiene acceso a todo. Si todavia no es mesero,
+        // se registra automaticamente la primera vez que toma un pedido.
+        if (mesero == null && usuario.getRol().getId() == Roles.SUPER_ADMINISTRADOR) {
+            meseroDAO.insertar(usuario.getId(), usuario.getUsername(), "(Super Admin)");
+            mesero = meseroDAO.buscarPorIdUsuario(usuario.getId());
+        }
+
         if (mesero == null) {
             throw new IllegalArgumentException("Tu usuario no esta registrado como mesero, no puede tomar pedidos");
         }
@@ -65,12 +71,12 @@ public class PedidoService {
         return pedido;
     }
 
-    // Los pedidos que la cocina todavia tiene que preparar. 
+    //Los pedidos que la cocina todavia tiene que preparar. 
     public List<Pedido> obtenerPedidosEnProceso() throws SQLException {
         return pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO);
     }
 
-    //La cocina marca un pedido como listo (Completado). 
+    // La cocina marca un pedido como listo (Completado). 
     public void marcarComoCompletado(Pedido pedido) throws SQLException {
         if (pedido == null) {
             throw new IllegalArgumentException("Selecciona un pedido de la tabla");
