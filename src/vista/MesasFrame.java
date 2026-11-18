@@ -83,6 +83,8 @@ public class MesasFrame extends JFrame {
             refrescarTabla();
         } catch (IllegalArgumentException ex) {
             avisar(ex.getMessage());
+            txtNumero.setText("");
+            txtNumero.requestFocusInWindow();
         } catch (SQLException ex) {
             mostrarErrorBD(ex);
         }
