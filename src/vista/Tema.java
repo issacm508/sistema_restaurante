@@ -2,29 +2,40 @@ package vista;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.text.JTextComponent;
 
-/**
- * Capa de vista: colores, fuentes y estilos que comparten todas las ventanas.
- * Tema negro con dorado, a juego con el logo de La Comarca Mexicana.
- * Para cambiar la apariencia de toda la aplicacion basta con editar esta clase.
- */
+
 public final class Tema {
 
     // Paleta (cambia estos valores para probar otros colores)
@@ -49,7 +60,24 @@ public final class Tema {
         // clase de utilidades: no se crean objetos
     }
 
-    /** Boton dorado con letras negras y efecto al pasar el mouse. */
+    public static void instalar() {
+        UIManager.put("OptionPane.background", FONDO);
+        UIManager.put("OptionPane.messageForeground", TEXTO);
+        UIManager.put("OptionPane.messageFont", FUENTE);
+        UIManager.put("OptionPane.buttonFont", FUENTE_NEGRITA);
+        UIManager.put("Panel.background", FONDO);
+
+        // Botones de los avisos: dorados, como los de la aplicacion
+        UIManager.put("ButtonUI", "javax.swing.plaf.basic.BasicButtonUI");
+        UIManager.put("Button.background", PRIMARIO);
+        UIManager.put("Button.foreground", TEXTO_SOBRE_DORADO);
+        UIManager.put("Button.select", PRIMARIO_CLARO);
+        UIManager.put("Button.focus", TEXTO_SOBRE_DORADO);
+        UIManager.put("Button.font", FUENTE_NEGRITA);
+        UIManager.put("Button.border", BorderFactory.createEmptyBorder(8, 24, 8, 24));
+    }
+
+    // Boton dorado con letras negras y efecto al pasar el mouse. 
     public static void estilizarBoton(JButton boton) {
         boton.setUI(new BasicButtonUI());   // asi Windows respeta el color de fondo
         boton.setBackground(PRIMARIO);
@@ -72,7 +100,7 @@ public final class Tema {
         });
     }
 
-    /** Campo de texto oscuro con borde dorado y letras claras. */
+    // Campo de texto oscuro con borde dorado y letras claras. 
     public static void estilizarCampo(JTextComponent campo) {
         campo.setFont(FUENTE);
         campo.setBackground(SUPERFICIE);
@@ -83,7 +111,7 @@ public final class Tema {
         campo.setBorder(BorderFactory.createCompoundBorder(linea, margen));
     }
 
-    /** Tabla oscura con encabezado dorado y filas alternadas. */
+    //Tabla oscura con encabezado dorado y filas alternadas. 
     public static void estilizarTabla(JTable tabla) {
         tabla.setFont(FUENTE);
         tabla.setBackground(FILA_BASE);
@@ -108,6 +136,9 @@ public final class Tema {
             }
         });
 
+        // Las columnas numericas usan el mismo estilo
+        tabla.setDefaultRenderer(Number.class, tabla.getDefaultRenderer(Object.class));
+
         // Encabezado
         JTableHeader encabezado = tabla.getTableHeader();
         encabezado.setBackground(PRIMARIO);
@@ -122,7 +153,116 @@ public final class Tema {
         encabezado.setDefaultRenderer(centrado);
     }
 
-    /** Etiqueta de titulo en dorado. */
+    //Lista desplegable oscura con flecha dorada. 
+    public static void estilizarCombo(JComboBox<?> combo) {
+        combo.setUI(new BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                BasicArrowButton flecha = new BasicArrowButton(BasicArrowButton.SOUTH,
+                        SUPERFICIE, SUPERFICIE, PRIMARIO, SUPERFICIE);
+                flecha.setBorder(BorderFactory.createEmptyBorder());
+                return flecha;
+            }
+
+            // Se pintan a mano el fondo y el texto del valor elegido, para que siempre se vean oscuros
+            @Override
+            public void paintCurrentValueBackground(Graphics g, Rectangle area, boolean foco) {
+                g.setColor(SUPERFICIE);
+                g.fillRect(area.x, area.y, area.width, area.height);
+            }
+
+            @Override
+            public void paintCurrentValue(Graphics g, Rectangle area, boolean foco) {
+                Object valor = comboBox.getSelectedItem();
+                String texto = (valor == null) ? "" : valor.toString();
+                g.setColor(TEXTO);
+                g.setFont(FUENTE);
+                FontMetrics medidas = g.getFontMetrics();
+                int y = area.y + (area.height + medidas.getAscent() - medidas.getDescent()) / 2;
+                g.drawString(texto, area.x + 6, y);
+            }
+        });
+        combo.setBackground(SUPERFICIE);
+        combo.setForeground(TEXTO);
+        combo.setFont(FUENTE);
+        combo.setBorder(BorderFactory.createLineBorder(PRIMARIO, 1));
+        combo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> lista, Object valor, int indice,
+                    boolean seleccionado, boolean foco) {
+                super.getListCellRendererComponent(lista, valor, indice, seleccionado, foco);
+                setFont(FUENTE);
+                setBackground(seleccionado ? PRIMARIO : SUPERFICIE);
+                setForeground(seleccionado ? TEXTO_SOBRE_DORADO : TEXTO);
+                return this;
+            }
+        });
+    }
+
+    //Contador (cantidad) con el campo oscuro y borde dorado. 
+    public static void estilizarSpinner(JSpinner spinner) {
+        spinner.setBackground(SUPERFICIE);
+        spinner.setBorder(BorderFactory.createLineBorder(PRIMARIO, 1));
+        if (spinner.getEditor() instanceof JSpinner.DefaultEditor) {
+            JTextComponent campo = ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
+            campo.setBackground(SUPERFICIE);
+            campo.setForeground(TEXTO);
+            campo.setFont(FUENTE);
+            campo.setCaretColor(PRIMARIO);
+        }
+    }
+
+    //Aplica el tema a una ventana completa: recorre todos sus componentes y les da el estilo.Se llama una sola vez, al final del constructor de la ventana: Tema.aplicar(this);
+    
+    public static void aplicar(Container ventana) {
+        if (ventana instanceof RootPaneContainer) {
+            Container contenido = ((RootPaneContainer) ventana).getContentPane();
+            contenido.setBackground(FONDO);
+            aplicarA(contenido);
+        } else {
+            aplicarA(ventana);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void aplicarA(Component c) {
+        if (c instanceof JButton) {
+            estilizarBoton((JButton) c);
+            return;
+        }
+        if (c instanceof JTable) {
+            estilizarTabla((JTable) c);
+            return;
+        }
+        if (c instanceof JComboBox) {
+            estilizarCombo((JComboBox<Object>) c);
+            return;
+        }
+        if (c instanceof JSpinner) {
+            estilizarSpinner((JSpinner) c);
+            return;
+        }
+        if (c instanceof JTextComponent) {
+            estilizarCampo((JTextComponent) c);
+            return;
+        }
+        if (c instanceof JLabel) {
+            c.setForeground(TEXTO);
+        } else if (c instanceof JScrollPane) {
+            JScrollPane scroll = (JScrollPane) c;
+            scroll.getViewport().setBackground(FONDO);
+            scroll.setBorder(BorderFactory.createLineBorder(PRIMARIO, 1));
+        } else if (c instanceof JPanel || c instanceof JSplitPane) {
+            c.setBackground(FONDO);
+        }
+        if (c instanceof Container) {
+            for (Component hijo : ((Container) c).getComponents()) {
+                aplicarA(hijo);
+            }
+        }
+    }
+
+    /// Etiqueta de titulo en dorado. 
     public static JLabel titulo(String texto) {
         JLabel etiqueta = new JLabel(texto, SwingConstants.CENTER);
         etiqueta.setFont(FUENTE_TITULO);
@@ -130,10 +270,9 @@ public final class Tema {
         return etiqueta;
     }
 
-    /**
-     * Etiqueta con el logo escalado al ancho indicado.
-     * Si no encuentra el archivo recursos/logo.png, devuelve una etiqueta vacia (la app sigue funcionando).
-     */
+    
+     //Etiqueta con el logo escalado al ancho indicado.Si no encuentra el archivo recursos/logo.png, devuelve una etiqueta vacia (la app sigue funcionando).
+  
     public static JLabel logo(int ancho) {
         File archivo = new File(RUTA_LOGO);
         if (!archivo.exists()) {
