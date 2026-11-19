@@ -1,8 +1,7 @@
 package modelo;
 
-/**
- * Una linea de un pedido: un platillo y cuantas unidades se pidieron.
- */
+// Una linea de un pedido: un platillo y cuantas unidades se pidieron.
+
 public class DetallePedido {
 
     private int id;

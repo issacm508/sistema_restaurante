@@ -5,10 +5,10 @@ Proyecto #8 del curso de Programación Orientada a Objetos: aplicación de escri
 ## Funciones
 
 - Inicio de sesión con menús distintos según el rol del usuario. El login recuerda los nombres de usuario que ya entraron en esa computadora (nunca guarda contraseñas).
-- Catálogo de platillos (consultar y agregar).
+- Catálogo de platillos (consultar, agregar, editar y eliminar). No se puede eliminar un platillo que ya aparece en pedidos.
 - Mesas: consultar, agregar, ocupar y liberar (el número de mesa va de 1 a 999).
 - Pedidos: el mesero registra un pedido con varios platillos (se guarda en una sola transacción y la mesa pasa a "Ocupada").
-- Cocina: lista de pedidos en proceso que se actualiza sola cada 10 segundos; permite marcarlos como completados.
+- Cocina: lista de pedidos en proceso que se actualiza sola cada 10 segundos; permite marcarlos como completados o cancelarlos (la mesa queda libre).
 - Caja: cobro de pedidos (libera la mesa).
 - Reportes: ventas por día, platillos más vendidos, ventas por mesero, ingresos por método de pago y pedidos por estado.
 - Usuarios y roles: el Super Administrador agrega, edita y elimina usuarios y les asigna un rol.
@@ -34,7 +34,7 @@ Estructura de carpetas:
 
 ```
 sistema_restaurante
-├── lib        (mysql-connector-j y  junit-platform-console-standalone) 
+├── lib        (mysql-connector-j y junit-platform-console-standalone)
 ├── src        (código fuente: conexion, dao, modelo, servicio, vista, App.java)
 ├── test       (pruebas JUnit: modelo y servicio)
 ├── recursos   (logo del restaurante: logo.png)
@@ -79,14 +79,14 @@ Vienen en la tabla `usuarios` del archivo SQL:
 | Super Administrador | Ariadna Cornejo | 123 | Todo (incluye tomar pedidos y cobrar) |
 | Recepcionista | Maria Lopez | 321 | Mesas |
 | Mesero | Carlos Vallarta | 098 | Registrar pedidos |
-| Cocina | Jessica Cruz | 890 | Ver y completar pedidos |
+| Cocina | Jessica Cruz | 890 | Ver, completar y cancelar pedidos |
 | Administrador | Juan Perez | 456 | Caja (cobrar) |
 
 ## Pruebas unitarias (JUnit 5)
 
-Hay 67 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos, platillos, usuarios y usuarios recordados).
+Hay 74 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos, platillos, usuarios y usuarios recordados).
 
-Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **67/67 en verde**.
+Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **74/74 en verde**.
 
 ## Notas y limitaciones conocidas
 
@@ -94,7 +94,6 @@ Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa *
 - La contraseña de MySQL está escrita en `ConexionBD.java`; no debe reutilizarse una contraseña personal.
 - Los usuarios recordados del login se guardan en un archivo de la carpeta personal de Windows (`.la_comarca_usuarios.txt`), fuera del proyecto. Solo contiene nombres de usuario.
 - Los diagramas ER y UML entregados anteriormente no reflejan los últimos cambios de la base de datos.
-- Pendiente: edición y borrado de platillos.
 
 ## Equipo
 

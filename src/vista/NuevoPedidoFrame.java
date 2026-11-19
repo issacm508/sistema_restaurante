@@ -26,10 +26,6 @@ import modelo.Usuario;
 import servicio.PedidoService;
 import servicio.PlatilloService;
 
-/**
- * Capa de vista: pantalla para tomar un pedido.
- * Las reglas (mesa libre, mesero valido, etc.) estan en PedidoService; aqui solo se muestran los avisos.
- */
 public class NuevoPedidoFrame extends JFrame {
 
     private final Usuario usuario;   // el usuario que inicio sesion (el mesero)

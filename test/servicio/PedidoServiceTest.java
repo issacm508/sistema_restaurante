@@ -2,7 +2,6 @@ package servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.ArrayList;
 import java.util.List;
 import modelo.Categoria;
@@ -13,9 +12,6 @@ import modelo.Rol;
 import modelo.Roles;
 import modelo.Usuario;
 import org.junit.jupiter.api.Test;
-
-
- // Pruebas unitarias de PedidoService: las reglas que fallan antes de consultar la base de datos.
 
 public class PedidoServiceTest {
 
@@ -48,6 +44,14 @@ public class PedidoServiceTest {
     void registrarRechazaUnaListaNula() {
         assertThrows(IllegalArgumentException.class,
                 () -> servicio.registrar(usuario, mesa, null));
+    }
+
+    @Test
+    void cancelarRechazaUnPedidoNulo() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> servicio.cancelar(null));
+
+        assertEquals("Selecciona un pedido de la tabla", ex.getMessage());
     }
 
     @Test

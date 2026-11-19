@@ -29,10 +29,6 @@ import modelo.Usuario;
 import servicio.AuthService;
 import servicio.UsuariosRecientesService;
 
-/**
- * Capa de vista: pantalla de inicio de sesion.
- * NO consulta la base de datos ni compara contrasenas: eso lo hace AuthService.
- */
 public class LoginFrame extends JFrame {
 
     private final AuthService authService = new AuthService();

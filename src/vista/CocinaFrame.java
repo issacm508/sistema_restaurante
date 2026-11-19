@@ -22,7 +22,6 @@ import modelo.DetallePedido;
 import modelo.Pedido;
 import servicio.PedidoService;
 
-//Capa de vista: pantalla de la cocina. Muestra los pedidos En Proceso y permite marcarlos como listos. Se actualiza sola cada pocos segundos, asi la cocina ve los pedidos nuevos sin hacer nada.
 public class CocinaFrame extends JFrame {
 
     private static final int SEGUNDOS_ACTUALIZACION = 10;
@@ -59,13 +58,16 @@ public class CocinaFrame extends JFrame {
         panel.add(new JLabel("Se actualiza cada " + SEGUNDOS_ACTUALIZACION + " segundos"));
         JButton btnActualizar = new JButton("Actualizar ahora");
         JButton btnListo = new JButton("Marcar como listo");
+        JButton btnCancelar = new JButton("Cancelar pedido");
         panel.add(btnActualizar);
         panel.add(btnListo);
+        panel.add(btnCancelar);
         add(panel, BorderLayout.SOUTH);
 
         // --- eventos ---
         btnActualizar.addActionListener(e -> refrescarTabla());
         btnListo.addActionListener(e -> marcarListo());
+        btnCancelar.addActionListener(e -> cancelarPedido());
 
         // Temporizador de Swing: llama a refrescarTabla cada cierto tiempo
         temporizador = new Timer(SEGUNDOS_ACTUALIZACION * 1000, e -> refrescarTabla());
@@ -93,6 +95,30 @@ public class CocinaFrame extends JFrame {
     private void marcarListo() {
         try {
             servicio.marcarComoCompletado(pedidoSeleccionado());
+            refrescarTabla();
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Aviso", JOptionPane.WARNING_MESSAGE);
+        } catch (SQLException ex) {
+            mostrarErrorBD(ex);
+        }
+    }
+
+    private void cancelarPedido() {
+        Pedido seleccionado = pedidoSeleccionado();
+        if (seleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Selecciona un pedido de la tabla",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int respuesta = JOptionPane.showConfirmDialog(this,
+                "Cancelar el pedido #" + seleccionado.getId() + " de la mesa "
+                        + seleccionado.getMesa().getNumeroMesa() + "?\nLa mesa quedara disponible.",
+                "Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (respuesta != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            servicio.cancelar(seleccionado);
             refrescarTabla();
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Aviso", JOptionPane.WARNING_MESSAGE);

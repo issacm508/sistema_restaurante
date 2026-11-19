@@ -13,13 +13,16 @@ import modelo.Pedido;
 import modelo.Roles;
 import modelo.Usuario;
 
+/**
+ * Capa de servicio: reglas de negocio de los pedidos.
+ */
 public class PedidoService {
 
     private final PedidoDAO pedidoDAO = new PedidoDAO();
     private final MeseroDAO meseroDAO = new MeseroDAO();
     private final MesaService mesaService = new MesaService();
 
-    // Solo las mesas libres se pueden usar para un pedido nuevo. 
+    /** Solo las mesas libres se pueden usar para un pedido nuevo. */
     public List<Mesa> obtenerMesasDisponibles() throws SQLException {
         List<Mesa> disponibles = new ArrayList<>();
         for (Mesa m : mesaService.obtenerTodas()) {
@@ -71,7 +74,7 @@ public class PedidoService {
         return pedido;
     }
 
-    //Los pedidos que la cocina todavia tiene que preparar. 
+    // Los pedidos que la cocina todavia tiene que preparar. 
     public List<Pedido> obtenerPedidosEnProceso() throws SQLException {
         return pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO);
     }
@@ -84,17 +87,34 @@ public class PedidoService {
 
         // Regla: solo se puede completar un pedido que siga En Proceso
         // (otra persona de la cocina pudo haberlo completado ya).
-        boolean sigueEnProceso = false;
-        for (Pedido p : pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO)) {
-            if (p.getId() == pedido.getId()) {
-                sigueEnProceso = true;
-                break;
-            }
-        }
-        if (!sigueEnProceso) {
+        if (!sigueEnProceso(pedido)) {
             throw new IllegalArgumentException("El pedido #" + pedido.getId() + " ya no esta en proceso");
         }
 
         pedidoDAO.actualizarEstado(pedido.getId(), EstadosPedido.COMPLETADO);
+    }
+
+    // Cancela un pedido En Proceso y deja libre su mesa. 
+    public void cancelar(Pedido pedido) throws SQLException {
+        if (pedido == null) {
+            throw new IllegalArgumentException("Selecciona un pedido de la tabla");
+        }
+
+        // Regla: solo se puede cancelar un pedido que siga En Proceso
+        if (!sigueEnProceso(pedido)) {
+            throw new IllegalArgumentException("El pedido #" + pedido.getId() + " ya no esta en proceso");
+        }
+
+        pedidoDAO.cancelar(pedido);
+    }
+
+    // Vuelve a consultar la base de datos, por si otra persona cambio el pedido mientras tanto
+    private boolean sigueEnProceso(Pedido pedido) throws SQLException {
+        for (Pedido p : pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO)) {
+            if (p.getId() == pedido.getId()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
