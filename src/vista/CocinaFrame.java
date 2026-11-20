@@ -1,6 +1,7 @@
 package vista;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -15,6 +16,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
@@ -37,7 +40,7 @@ public class CocinaFrame extends JFrame {
 
     public CocinaFrame() {
         setTitle("Cocina - Pedidos en proceso");
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);   // al cerrar solo se cierra esta ventana
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);  
         setSize(920, 420);
         setLocationRelativeTo(null);
 
@@ -48,9 +51,19 @@ public class CocinaFrame extends JFrame {
                 return false;
             }
         };
-        tabla = new JTable(modeloTabla);
+        tabla = new JTable(modeloTabla) {
+            // Si el tema cambia la altura de las filas, se vuelven a calcular segun los platillos de cada pedido
+            @Override
+            public void setRowHeight(int alto) {
+                super.setRowHeight(alto);
+                ajustarAlturas(this);
+            }
+        };
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabla.getColumnModel().getColumn(4).setPreferredWidth(400);   // la columna de platillos es la mas ancha
+        tabla.getColumnModel().getColumn(2).setPreferredWidth(150);   
+        tabla.getColumnModel().getColumn(4).setPreferredWidth(400);   
+
+        tabla.getColumnModel().getColumn(4).setCellRenderer(crearRenderizadorPlatillos());
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
         // --- botones (abajo) ---
@@ -87,7 +100,7 @@ public class CocinaFrame extends JFrame {
     private Pedido pedidoSeleccionado() {
         int fila = tabla.getSelectedRow();
         if (fila < 0 || fila >= pedidos.size()) {
-            return null;   // no hay ninguna fila seleccionada
+            return null;   
         }
         return pedidos.get(fila);
     }
@@ -144,6 +157,8 @@ public class CocinaFrame extends JFrame {
                 });
             }
 
+            ajustarAlturas(tabla);
+
             if (seleccionado != null) {
                 for (int i = 0; i < pedidos.size(); i++) {
                     if (pedidos.get(i).getId() == seleccionado.getId()) {
@@ -156,12 +171,40 @@ public class CocinaFrame extends JFrame {
         }
     }
 
-    // Convierte los detalles del pedido en un texto como "2 x Milanesa de Res, 1 x Flan Napolitano"
+    private void ajustarAlturas(JTable t) {
+        if (modeloTabla == null || t.getColumnCount() < 5) {
+            return;  
+        }
+        int alturaLinea = t.getFontMetrics(Tema.FUENTE).getHeight();
+        for (int fila = 0; fila < modeloTabla.getRowCount(); fila++) {
+            Object texto = modeloTabla.getValueAt(fila, 4);
+            int lineas = (texto == null) ? 1 : texto.toString().split("\\n").length;
+            int alto = Math.max(t.getRowHeight(), lineas * alturaLinea + 10);
+            if (t.getRowHeight(fila) != alto) {
+                t.setRowHeight(fila, alto);
+            }
+        }
+    }
+
+    private TableCellRenderer crearRenderizadorPlatillos() {
+        JTextArea area = new JTextArea();
+        area.setFont(Tema.FUENTE);
+        area.setOpaque(true);
+        area.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 4, 3, 4));
+        return (JTable t, Object valor, boolean seleccionada, boolean foco, int fila, int columna) -> {
+            area.setText(valor == null ? "" : valor.toString());
+            area.setBackground(seleccionada ? t.getSelectionBackground()
+                    : (fila % 2 == 0 ? Tema.FILA_BASE : Tema.SUPERFICIE));
+            area.setForeground(seleccionada ? t.getSelectionForeground() : Tema.TEXTO);
+            return (Component) area;
+        };
+    }
+
     private String resumenPlatillos(Pedido pedido) {
         StringBuilder texto = new StringBuilder();
         for (DetallePedido d : pedido.getDetalles()) {
             if (texto.length() > 0) {
-                texto.append(", ");
+                texto.append("\n");
             }
             texto.append(d.getCantidad()).append(" x ").append(d.getPlatillo().getNombre());
         }

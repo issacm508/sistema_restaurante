@@ -24,7 +24,6 @@ public class MesaService {
     public void agregar(String numeroTexto) throws SQLException {
         String texto = (numeroTexto == null) ? "" : numeroTexto.trim();
 
-        // Solo digitos (con signo menos opcional): "abc" o "2.5" no son numeros enteros
         if (!texto.matches("-?\\d+")) {
             throw new IllegalArgumentException("El numero de mesa debe ser un numero entero");
         }
@@ -69,6 +68,11 @@ public class MesaService {
         }
         if (DISPONIBLE.equals(mesa.getEstado())) {
             throw new IllegalArgumentException("La mesa " + mesa.getNumeroMesa() + " ya esta disponible");
+        }
+        // Regla: la mesa no se libera a mano mientras su pedido no se haya cobrado
+        if (mesaDAO.tienePedidoSinCobrar(mesa.getId())) {
+            throw new IllegalArgumentException("La mesa " + mesa.getNumeroMesa()
+                    + " tiene un pedido sin cobrar; se libera cuando se cobre en Caja");
         }
         mesaDAO.actualizarEstado(mesa.getId(), DISPONIBLE);
     }
