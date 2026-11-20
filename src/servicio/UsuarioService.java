@@ -5,10 +5,10 @@ import dao.UsuarioDAO;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
+import modelo.Cifrado;
 import modelo.Rol;
 import modelo.Usuario;
 
-//Lo usa el Super Administrador para administrar las cuentas.
 
 public class UsuarioService {
 
@@ -36,12 +36,11 @@ public class UsuarioService {
             throw new IllegalArgumentException("Ya existe el usuario " + nuevo.getUsername());
         }
 
+        // En la base de datos se guarda el hash, nunca la contrasena escrita
+        nuevo.setPassword(Cifrado.sha256(password));
         usuarioDAO.insertar(nuevo);
     }
 
-    
-     //Cambia el nombre y el rol de un usuario. Si la contrasena viene vacia, se conserva la actual. "actual" es el usuario que inicio sesion (el que esta haciendo el cambio).
-     
     public void actualizar(Usuario seleccionado, String username, String password,
                            Rol rol, Usuario actual) throws SQLException {
         if (seleccionado == null) {
@@ -69,6 +68,9 @@ public class UsuarioService {
             throw new IllegalArgumentException("Ya existe el usuario " + editado.getUsername());
         }
 
+        if (cambiarPassword) {
+            editado.setPassword(Cifrado.sha256(password));   
+        }
         usuarioDAO.actualizar(editado, cambiarPassword);
     }
 

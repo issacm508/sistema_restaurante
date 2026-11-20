@@ -4,7 +4,7 @@ Proyecto #8 del curso de Programación Orientada a Objetos: aplicación de escri
 
 ## Funciones
 
-- Inicio de sesión con menús distintos según el rol del usuario. El login recuerda los nombres de usuario que ya entraron en esa computadora (nunca guarda contraseñas).
+- Inicio de sesión con menús distintos según el rol del usuario. Las contraseñas se guardan cifradas (hash SHA-256). El login recuerda los nombres de usuario que ya entraron en esa computadora (nunca guarda contraseñas).
 - Catálogo de platillos (consultar, agregar, editar y eliminar). No se puede eliminar un platillo que ya aparece en pedidos.
 - Mesas: consultar, agregar, ocupar y liberar (el número de mesa va de 1 a 999).
 - Pedidos: el mesero registra un pedido con varios platillos (se guarda en una sola transacción y la mesa pasa a "Ocupada").
@@ -84,13 +84,13 @@ Vienen en la tabla `usuarios` del archivo SQL:
 
 ## Pruebas unitarias (JUnit 5)
 
-Hay 74 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos, platillos, usuarios y usuarios recordados).
+Hay 79 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos, platillos, usuarios, cifrado de contraseñas y usuarios recordados).
 
-Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **74/74 en verde**.
+Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **79/79 en verde**.
 
 ## Notas y limitaciones conocidas
 
-- Las contraseñas se guardan en texto plano en la tabla `usuarios` (datos de ejemplo del curso). Mejora pendiente: guardarlas con hash.
+- Las contraseñas se guardan cifradas con hash SHA-256 en la tabla `usuarios` (nunca en texto plano). Mejora pendiente: agregar una "sal" aleatoria por usuario.
 - La contraseña de MySQL está escrita en `ConexionBD.java`; no debe reutilizarse una contraseña personal.
 - Los usuarios recordados del login se guardan en un archivo de la carpeta personal de Windows (`.la_comarca_usuarios.txt`), fuera del proyecto. Solo contiene nombres de usuario.
 - Los diagramas ER y UML entregados anteriormente no reflejan los últimos cambios de la base de datos.
