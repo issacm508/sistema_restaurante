@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ import modelo.DetallePedido;
 import modelo.MetodoPago;
 import modelo.Pedido;
 import servicio.CajaService;
+import servicio.TicketService;
 
 
 //Capa de vista: pantalla de Caja. Muestra los pedidos Completados quetodavia no se han cobrado y permite cobrarlos con un metodo de pago.
@@ -29,6 +31,7 @@ import servicio.CajaService;
 public class CajaFrame extends JFrame {
 
     private final CajaService servicio = new CajaService();
+    private final TicketService ticketService = new TicketService();
     private final DateTimeFormatter formatoHora = DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
     // pedidos que se muestran en la tabla (misma posicion que las filas)
@@ -157,7 +160,13 @@ public class CajaFrame extends JFrame {
                  .append("   $").append(String.format("%.2f", d.getSubtotal()))
                  .append("\n");
         }
+        // desglose del IVA (los precios del menu ya lo incluyen)
+        texto.append("\n")
+             .append(String.format("Subtotal:   $%.2f%n", servicio.calcularSubtotal(pedido)))
+             .append(String.format("IVA (16%%):  $%.2f%n", servicio.calcularIva(pedido)))
+             .append(String.format("Total:      $%.2f%n", servicio.calcularTotal(pedido)));
         txtDetalle.setText(texto.toString());
+        txtDetalle.setCaretPosition(0);
         lblTotal.setText(String.format("Total: $%.2f", servicio.calcularTotal(pedido)));
     }
 
@@ -191,9 +200,11 @@ public class CajaFrame extends JFrame {
 
         try {
             servicio.cobrar(pedido, metodo);
-            JOptionPane.showMessageDialog(this, "Cobro registrado. La mesa quedo disponible.",
-                    "Caja", JOptionPane.INFORMATION_MESSAGE);
-            cargarPedidos();
+            cargarPedidos();   // el pedido cobrado desaparece de la lista
+
+            // Se muestra el ticket (se puede imprimir o guardar). La mesa ya quedo disponible.
+            String textoTicket = ticketService.generar(pedido, String.valueOf(metodo), LocalDateTime.now());
+            new TicketDialog(this, textoTicket, pedido.getId()).setVisible(true);
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Caja", JOptionPane.WARNING_MESSAGE);
         } catch (SQLException ex) {

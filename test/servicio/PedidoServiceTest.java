@@ -2,16 +2,20 @@ package servicio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.ArrayList;
 import java.util.List;
 import modelo.Categoria;
 import modelo.DetallePedido;
 import modelo.Mesa;
+import modelo.Mesero;
+import modelo.Pedido;
 import modelo.Platillo;
 import modelo.Rol;
 import modelo.Roles;
 import modelo.Usuario;
 import org.junit.jupiter.api.Test;
+
 
 public class PedidoServiceTest {
 
@@ -49,7 +53,7 @@ public class PedidoServiceTest {
     @Test
     void cancelarRechazaUnPedidoNulo() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> servicio.cancelar(null));
+                () -> servicio.cancelar(usuario, null));
 
         assertEquals("Selecciona un pedido de la tabla", ex.getMessage());
     }
@@ -60,5 +64,27 @@ public class PedidoServiceTest {
                 () -> servicio.marcarComoCompletado(null));
 
         assertEquals("Selecciona un pedido de la tabla", ex.getMessage());
+    }
+
+    @Test
+    void cancelarRechazaAUnMeseroQueNoTomoElPedido() {
+        Pedido ajeno = new Pedido();
+        ajeno.setId(7);
+        ajeno.setMesero(new Mesero(5, 99, "Otro", "Mesero", true));   // pertenece al usuario 99, no al 1
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> servicio.cancelar(usuario, ajeno));
+
+        assertEquals("Solo el mesero que tomo el pedido puede cancelarlo", ex.getMessage());
+    }
+
+    @Test
+    void cancelarRechazaAlPersonalDeCocina() {
+        Usuario cocinero = new Usuario(2, "Cocina", "xyz", new Rol(Roles.COCINA, "Cocina"));
+        Pedido pedido = new Pedido();
+        pedido.setId(8);
+        pedido.setMesero(new Mesero(5, 2, "Mismo", "Id", true));   // aunque coincida el id, su rol no puede
+
+        assertThrows(IllegalArgumentException.class, () -> servicio.cancelar(cocinero, pedido));
     }
 }

@@ -14,15 +14,13 @@ import modelo.Pedido;
 import modelo.Roles;
 import modelo.Usuario;
 
-
- //Capa de servicio: reglas de negocio de los pedidos.
- 
 public class PedidoService {
 
     private final PedidoDAO pedidoDAO = new PedidoDAO();
     private final MeseroDAO meseroDAO = new MeseroDAO();
     private final MesaDAO mesaDAO = new MesaDAO();
     private final MesaService mesaService = new MesaService();
+
 
     public List<Mesa> obtenerMesasDisponibles() throws SQLException {
         List<Mesa> disponibles = new ArrayList<>();
@@ -42,6 +40,7 @@ public class PedidoService {
             throw new IllegalArgumentException("Agrega al menos un platillo al pedido");
         }
 
+        // Regla: el pedido lo toma un mesero. El usuario del login debe estar registrado como mesero.
         Mesero mesero = meseroDAO.buscarPorIdUsuario(usuario.getId());
 
         // Excepcion: el Super Administrador tiene acceso a todo. Si todavia no es mesero,
@@ -91,8 +90,6 @@ public class PedidoService {
             throw new IllegalArgumentException("Selecciona un pedido de la tabla");
         }
 
-        // Regla: solo se puede completar un pedido que siga En Proceso
-        // (otra persona de la cocina pudo haberlo completado ya).
         if (!sigueEnProceso(pedido)) {
             throw new IllegalArgumentException("El pedido #" + pedido.getId() + " ya no esta en proceso");
         }
@@ -100,16 +97,44 @@ public class PedidoService {
         pedidoDAO.actualizarEstado(pedido.getId(), EstadosPedido.COMPLETADO);
     }
 
-    public void cancelar(Pedido pedido) throws SQLException {
+    public List<Pedido> obtenerPedidosCancelables(Usuario usuario) throws SQLException {
+        List<Pedido> resultado = new ArrayList<>();
+        for (Pedido p : pedidoDAO.listarPorEstado(EstadosPedido.EN_PROCESO)) {
+            if (puedeCancelar(usuario, p)) {
+                resultado.add(p);
+            }
+        }
+        return resultado;
+    }
+
+
+    public void cancelar(Usuario usuario, Pedido pedido) throws SQLException {
         if (pedido == null) {
             throw new IllegalArgumentException("Selecciona un pedido de la tabla");
         }
 
+        if (!puedeCancelar(usuario, pedido)) {
+            throw new IllegalArgumentException("Solo el mesero que tomo el pedido puede cancelarlo");
+        }
+
         if (!sigueEnProceso(pedido)) {
-            throw new IllegalArgumentException("El pedido #" + pedido.getId() + " ya no esta en proceso");
+            throw new IllegalArgumentException("El pedido #" + pedido.getId()
+                    + " ya no esta en proceso (la cocina ya lo preparo o ya se cancelo)");
         }
 
         pedidoDAO.cancelar(pedido);
+    }
+
+    private boolean puedeCancelar(Usuario usuario, Pedido pedido) {
+        if (usuario == null || pedido == null) {
+            return false;
+        }
+        if (usuario.getRol().getId() == Roles.SUPER_ADMINISTRADOR) {
+            return true;
+        }
+        return usuario.getRol().getId() == Roles.MESERO
+                && pedido.getMesero() != null
+                && pedido.getMesero().getIdUsuario() == usuario.getId();
     }
 
     // Vuelve a consultar la base de datos, por si otra persona cambio el pedido mientras tanto

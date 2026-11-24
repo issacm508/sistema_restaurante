@@ -18,19 +18,11 @@ import modelo.Mesero;
 import modelo.Pedido;
 import modelo.Platillo;
 
-/**
- * Capa DAO: es la UNICA que escribe SQL para pedidos y detalle_pedido.
- */
+
 public class PedidoDAO {
 
     private static final String MESA_OCUPADA = "Ocupada";
-    private static final String MESA_DISPONIBLE = "Disponible";
 
-    /**
-     * Guarda el pedido, sus detalles y marca la mesa como ocupada.
-     * Se hace en UNA TRANSACCION: o se guarda todo, o no se guarda nada.
-     * Asi nunca queda un pedido sin detalles, ni una mesa ocupada sin pedido.
-     */
     public void registrar(Pedido pedido) throws SQLException {
         // idEstado (1 = En Proceso) y fechaHora los pone la base de datos con su valor por defecto
         String sqlPedido = "INSERT INTO pedidos (idMesero, idMesa) VALUES (?, ?)";
@@ -86,14 +78,11 @@ public class PedidoDAO {
         }
     }
 
-    /**
-     * Devuelve los pedidos que estan en un estado (por ejemplo, En Proceso),
-     * cada uno con su mesa, su mesero y sus detalles. Los mas antiguos primero.
-     */
+
     public List<Pedido> listarPorEstado(int idEstado) throws SQLException {
         String sql = "SELECT p.id AS idPedido, p.fechaHora, "
                    + "       m.id AS idMesa, m.numeroMesa, m.estado AS estadoMesa, "
-                   + "       me.id AS idMesero, me.nombre AS nombreMesero, me.apellido AS apellidoMesero, "
+                   + "       me.id AS idMesero, me.idUsuario AS idUsuarioMesero, me.nombre AS nombreMesero, me.apellido AS apellidoMesero, "
                    + "       d.id AS idDetalle, d.cantidad, "
                    + "       pl.id AS idPlatillo, pl.nombre AS nombrePlatillo, pl.precio "
                    + "FROM pedidos p "
@@ -122,6 +111,7 @@ public class PedidoDAO {
 
                         Mesero mesero = new Mesero();
                         mesero.setId(rs.getInt("idMesero"));
+                        mesero.setIdUsuario(rs.getInt("idUsuarioMesero"));
                         mesero.setNombre(rs.getString("nombreMesero"));
                         mesero.setApellido(rs.getString("apellidoMesero"));
 
@@ -148,40 +138,16 @@ public class PedidoDAO {
         return new ArrayList<>(pedidos.values());
     }
 
-    /**
-     * Cancela un pedido que sigue En Proceso y libera su mesa.
-     * Se hace en UNA TRANSACCION: o se hacen las dos cosas, o ninguna.
-     */
     public void cancelar(Pedido pedido) throws SQLException {
-        String sqlPedido = "UPDATE pedidos SET idEstado = ? WHERE id = ? AND idEstado = ?";
-        String sqlMesa = "UPDATE mesas SET estado = ? WHERE id = ?";
+        String sql = "UPDATE pedidos SET idEstado = ? WHERE id = ? AND idEstado = ?";
 
-        try (Connection con = ConexionBD.getConexion()) {
-            con.setAutoCommit(false);   // inicia la transaccion
-
-            try {
-                // 1) marcar el pedido como Cancelado (solo si todavia esta En Proceso)
-                try (PreparedStatement ps = con.prepareStatement(sqlPedido)) {
-                    ps.setInt(1, EstadosPedido.CANCELADO);
-                    ps.setInt(2, pedido.getId());
-                    ps.setInt(3, EstadosPedido.EN_PROCESO);
-                    if (ps.executeUpdate() == 0) {
-                        throw new SQLException("El pedido #" + pedido.getId() + " ya no esta en proceso");
-                    }
-                }
-
-                // 2) dejar la mesa disponible otra vez
-                try (PreparedStatement ps = con.prepareStatement(sqlMesa)) {
-                    ps.setString(1, MESA_DISPONIBLE);
-                    ps.setInt(2, pedido.getMesa().getId());
-                    ps.executeUpdate();
-                }
-
-                con.commit();            // todo salio bien: se confirma
-
-            } catch (SQLException e) {
-                con.rollback();          // algo fallo: se deshace todo
-                throw e;
+        try (Connection con = ConexionBD.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, EstadosPedido.CANCELADO);
+            ps.setInt(2, pedido.getId());
+            ps.setInt(3, EstadosPedido.EN_PROCESO);
+            if (ps.executeUpdate() == 0) {
+                throw new SQLException("El pedido #" + pedido.getId() + " ya no esta en proceso");
             }
         }
     }

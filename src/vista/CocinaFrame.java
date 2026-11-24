@@ -40,7 +40,7 @@ public class CocinaFrame extends JFrame {
 
     public CocinaFrame() {
         setTitle("Cocina - Pedidos en proceso");
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);  
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);   // al cerrar solo se cierra esta ventana
         setSize(920, 420);
         setLocationRelativeTo(null);
 
@@ -62,7 +62,6 @@ public class CocinaFrame extends JFrame {
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.getColumnModel().getColumn(2).setPreferredWidth(150);   
         tabla.getColumnModel().getColumn(4).setPreferredWidth(400);   
-
         tabla.getColumnModel().getColumn(4).setCellRenderer(crearRenderizadorPlatillos());
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
@@ -71,16 +70,13 @@ public class CocinaFrame extends JFrame {
         panel.add(new JLabel("Se actualiza cada " + SEGUNDOS_ACTUALIZACION + " segundos"));
         JButton btnActualizar = new JButton("Actualizar ahora");
         JButton btnListo = new JButton("Marcar como listo");
-        JButton btnCancelar = new JButton("Cancelar pedido");
         panel.add(btnActualizar);
         panel.add(btnListo);
-        panel.add(btnCancelar);
         add(panel, BorderLayout.SOUTH);
 
         // --- eventos ---
         btnActualizar.addActionListener(e -> refrescarTabla());
         btnListo.addActionListener(e -> marcarListo());
-        btnCancelar.addActionListener(e -> cancelarPedido());
 
         // Temporizador de Swing: llama a refrescarTabla cada cierto tiempo
         temporizador = new Timer(SEGUNDOS_ACTUALIZACION * 1000, e -> refrescarTabla());
@@ -100,7 +96,7 @@ public class CocinaFrame extends JFrame {
     private Pedido pedidoSeleccionado() {
         int fila = tabla.getSelectedRow();
         if (fila < 0 || fila >= pedidos.size()) {
-            return null;   
+            return null;   // no hay ninguna fila seleccionada
         }
         return pedidos.get(fila);
     }
@@ -108,30 +104,6 @@ public class CocinaFrame extends JFrame {
     private void marcarListo() {
         try {
             servicio.marcarComoCompletado(pedidoSeleccionado());
-            refrescarTabla();
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Aviso", JOptionPane.WARNING_MESSAGE);
-        } catch (SQLException ex) {
-            mostrarErrorBD(ex);
-        }
-    }
-
-    private void cancelarPedido() {
-        Pedido seleccionado = pedidoSeleccionado();
-        if (seleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Selecciona un pedido de la tabla",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int respuesta = JOptionPane.showConfirmDialog(this,
-                "Cancelar el pedido #" + seleccionado.getId() + " de la mesa "
-                        + seleccionado.getMesa().getNumeroMesa() + "?\nLa mesa quedara disponible.",
-                "Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (respuesta != JOptionPane.YES_OPTION) {
-            return;
-        }
-        try {
-            servicio.cancelar(seleccionado);
             refrescarTabla();
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -171,9 +143,10 @@ public class CocinaFrame extends JFrame {
         }
     }
 
+    // Cada fila crece segun cuantos platillos (lineas) tenga el pedido
     private void ajustarAlturas(JTable t) {
         if (modeloTabla == null || t.getColumnCount() < 5) {
-            return;  
+            return;   // todavia se esta construyendo la tabla
         }
         int alturaLinea = t.getFontMetrics(Tema.FUENTE).getHeight();
         for (int fila = 0; fila < modeloTabla.getRowCount(); fila++) {
@@ -186,6 +159,7 @@ public class CocinaFrame extends JFrame {
         }
     }
 
+    // Celda de varias lineas (un platillo por linea) con los colores de la tabla
     private TableCellRenderer crearRenderizadorPlatillos() {
         JTextArea area = new JTextArea();
         area.setFont(Tema.FUENTE);
@@ -200,6 +174,7 @@ public class CocinaFrame extends JFrame {
         };
     }
 
+    // Convierte los detalles del pedido en un texto con un platillo por linea: "2 x Milanesa de Res"
     private String resumenPlatillos(Pedido pedido) {
         StringBuilder texto = new StringBuilder();
         for (DetallePedido d : pedido.getDetalles()) {

@@ -33,14 +33,12 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import modelo.Usuario;
 import servicio.PermisoService;
 
- 
 public class MenuPrincipalFrame extends JFrame {
 
     private static final Color GRIS = new Color(0x8A, 0x8A, 0x8A);
     private static final Color HOVER = new Color(0x2E, 0x2E, 0x2E);
     private static final DateTimeFormatter FORMATO_FECHA =
             DateTimeFormatter.ofPattern("EEEE d 'de' MMMM  ·  HH:mm", Locale.forLanguageTag("es-MX"));
-
 
     private static class Modulo {
         final String seccion;
@@ -66,8 +64,8 @@ public class MenuPrincipalFrame extends JFrame {
     private final JPanel cuerpo = new JPanel(new BorderLayout());
     private final Timer reloj;
 
-    private JButton botonActivo;       // el boton de la barra que esta seleccionado
-    private JFrame moduloActual;       // la ventana del modulo que se esta mostrando
+    private JButton botonActivo;       
+    private JFrame moduloActual;      
 
     public MenuPrincipalFrame(Usuario usuario) {
         this.usuario = usuario;
@@ -91,8 +89,6 @@ public class MenuPrincipalFrame extends JFrame {
         reloj.start();
     }
 
-    // ------------------------------------------------------------------ modulos segun el rol
-
     private void armarModulos() {
         if (permisos.puedeAdministrar(usuario)) {
             modulos.add(new Modulo("Administracion", "Platillos",
@@ -114,6 +110,9 @@ public class MenuPrincipalFrame extends JFrame {
             modulos.add(new Modulo("Pedidos", "Registrar pedido",
                     "Tomar un pedido nuevo para una mesa",
                     () -> new NuevoPedidoFrame(usuario)));
+            modulos.add(new Modulo("Pedidos", "Mis pedidos",
+                    "Ver y cancelar pedidos en proceso",
+                    () -> new MisPedidosFrame(usuario)));
         }
         if (permisos.puedeVerCocina(usuario)) {
             modulos.add(new Modulo("Cocina", "Pedidos en cocina",
@@ -127,7 +126,6 @@ public class MenuPrincipalFrame extends JFrame {
         }
     }
 
-    // ------------------------------------------------------------------ barra lateral
 
     private JPanel crearBarraLateral() {
         JPanel barra = new JPanel(new BorderLayout());
@@ -263,7 +261,6 @@ public class MenuPrincipalFrame extends JFrame {
         }
     }
 
-
     private JPanel crearContenido() {
         JPanel contenido = new JPanel(new BorderLayout());
         contenido.setBackground(Tema.FONDO);
@@ -305,7 +302,6 @@ public class MenuPrincipalFrame extends JFrame {
         return contenido;
     }
 
-    //Pantalla de inicio: el logo y una invitacion a elegir un modulo. 
     private void mostrarInicio() {
         cerrarModuloActual();
         lblTitulo.setText("Bienvenido/a, " + usuario.getUsername());
@@ -318,7 +314,7 @@ public class MenuPrincipalFrame extends JFrame {
         ponerEnCuerpo(inicio);
     }
 
-    // Muestra el modulo elegido dentro de esta misma ventana. 
+  
     private void abrirModulo(Modulo modulo) {
         cerrarModuloActual();
         lblTitulo.setText(modulo.nombre);
@@ -339,7 +335,6 @@ public class MenuPrincipalFrame extends JFrame {
         cuerpo.repaint();
     }
 
-    // Cierra el modulo que se estaba mostrando (por ejemplo, detiene el temporizador de la cocina). 
     private void cerrarModuloActual() {
         if (moduloActual == null) {
             return;

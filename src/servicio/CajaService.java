@@ -18,6 +18,10 @@ public class CajaService {
 
     private static final int ESTADO_COMPLETADO = 2;
 
+    // IVA en Mexico: 16%. Los precios del menu YA incluyen el IVA, asi que no cambia lo que paga el cliente:
+    // el ticket solo lo desglosa (subtotal + IVA = total).
+    public static final double TASA_IVA = 0.16;
+
     private final PedidoDAO pedidoDAO = new PedidoDAO();
     private final PagoDAO pagoDAO = new PagoDAO();
 
@@ -38,13 +42,27 @@ public class CajaService {
         return pagoDAO.listarMetodosPago();
     }
 
-    // El total es la suma de los subtotales de cada detalle del pedido
+    // El total es la suma de los subtotales de cada detalle del pedido (ya incluye IVA)
     public double calcularTotal(Pedido pedido) {
         double total = 0;
         for (DetallePedido detalle : pedido.getDetalles()) {
             total += detalle.getSubtotal();
         }
-        return Math.round(total * 100.0) / 100.0;   // redondea a 2 decimales
+        return redondear(total);
+    }
+
+    // Subtotal = lo que cuesta el pedido sin IVA: total / 1.16
+    public double calcularSubtotal(Pedido pedido) {
+        return redondear(calcularTotal(pedido) / (1 + TASA_IVA));
+    }
+
+    // IVA = total - subtotal (asi subtotal + IVA siempre da exactamente el total)
+    public double calcularIva(Pedido pedido) {
+        return redondear(calcularTotal(pedido) - calcularSubtotal(pedido));
+    }
+
+    private double redondear(double valor) {
+        return Math.round(valor * 100.0) / 100.0;   // redondea a 2 decimales
     }
 
     // Cobra el pedido: registra el pago y libera la mesa
