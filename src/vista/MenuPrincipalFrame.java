@@ -65,7 +65,7 @@ public class MenuPrincipalFrame extends JFrame {
     private final Timer reloj;
 
     private JButton botonActivo;       
-    private JFrame moduloActual;      
+    private JFrame moduloActual;       
 
     public MenuPrincipalFrame(Usuario usuario) {
         this.usuario = usuario;
@@ -83,7 +83,6 @@ public class MenuPrincipalFrame extends JFrame {
 
         mostrarInicio();
 
-        // La fecha y la hora se actualizan cada segundo
         actualizarFecha();
         reloj = new Timer(1000, e -> actualizarFecha());
         reloj.start();
@@ -97,6 +96,9 @@ public class MenuPrincipalFrame extends JFrame {
             modulos.add(new Modulo("Administracion", "Usuarios y roles",
                     "Agregar, editar y eliminar usuarios",
                     () -> new UsuariosFrame(usuario)));
+            modulos.add(new Modulo("Administracion", "Meseros",
+                    "Telefono y estado de los meseros",
+                    () -> new MeserosFrame()));
             modulos.add(new Modulo("Administracion", "Reportes",
                     "Ventas, platillos mas vendidos y mas",
                     () -> new ReportesFrame()));
@@ -125,7 +127,6 @@ public class MenuPrincipalFrame extends JFrame {
                     () -> new CajaFrame()));
         }
     }
-
 
     private JPanel crearBarraLateral() {
         JPanel barra = new JPanel(new BorderLayout());
@@ -157,7 +158,6 @@ public class MenuPrincipalFrame extends JFrame {
         arriba.add(rol);
         barra.add(arriba, BorderLayout.NORTH);
 
-        // centro: inicio y modulos agrupados por seccion
         JPanel navegacion = new JPanel();
         navegacion.setLayout(new BoxLayout(navegacion, BoxLayout.Y_AXIS));
         navegacion.setOpaque(false);
@@ -187,7 +187,6 @@ public class MenuPrincipalFrame extends JFrame {
         navegacion.add(Box.createVerticalGlue());
         barra.add(navegacion, BorderLayout.CENTER);
 
-        // abajo: sesion
         JPanel abajo = new JPanel();
         abajo.setLayout(new BoxLayout(abajo, BoxLayout.Y_AXIS));
         abajo.setOpaque(false);
@@ -261,12 +260,12 @@ public class MenuPrincipalFrame extends JFrame {
         }
     }
 
+
     private JPanel crearContenido() {
         JPanel contenido = new JPanel(new BorderLayout());
         contenido.setBackground(Tema.FONDO);
         contenido.setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
 
-        // encabezado: titulo a la izquierda, fecha y hora a la derecha
         JPanel encabezado = new JPanel(new BorderLayout());
         encabezado.setOpaque(false);
         encabezado.setBorder(BorderFactory.createEmptyBorder(0, 0, 18, 0));
@@ -295,7 +294,6 @@ public class MenuPrincipalFrame extends JFrame {
         encabezado.add(contenedorFecha, BorderLayout.EAST);
         contenido.add(encabezado, BorderLayout.NORTH);
 
-        // aqui se muestra el inicio o el modulo elegido
         cuerpo.setOpaque(false);
         contenido.add(cuerpo, BorderLayout.CENTER);
 
@@ -314,14 +312,11 @@ public class MenuPrincipalFrame extends JFrame {
         ponerEnCuerpo(inicio);
     }
 
-  
     private void abrirModulo(Modulo modulo) {
         cerrarModuloActual();
         lblTitulo.setText(modulo.nombre);
         lblSubtitulo.setText(modulo.descripcion);
 
-        // Se crea la ventana del modulo (con datos frescos) pero no se muestra:
-        // solo se toma su contenido y se coloca a la derecha.
         moduloActual = modulo.crear.get();
         Container contenido = moduloActual.getContentPane();
         Tema.aplicar(contenido);
@@ -346,6 +341,7 @@ public class MenuPrincipalFrame extends JFrame {
         moduloActual.dispose();
         moduloActual = null;
     }
+
 
     private void actualizarFecha() {
         String texto = LocalDateTime.now().format(FORMATO_FECHA);

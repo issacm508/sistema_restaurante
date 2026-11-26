@@ -5,20 +5,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import modelo.Mesero;
 
 public class MeseroDAO {
 
-    // En la tabla estados_empleado, el id 1 es "Activo"
     private static final int ESTADO_ACTIVO = 1;
+    private static final int ESTADO_INACTIVO = 2;
 
-  
-      
-    //Busca al mesero que corresponde a un usuario (login).Devuelve null si ese usuario no esta registrado como mesero.
+    private static final String COLUMNAS = "id, idUsuario, idEstado, nombre, apellido, telefono";
 
     public Mesero buscarPorIdUsuario(int idUsuario) throws SQLException {
-        String sql = "SELECT id, idUsuario, idEstado, nombre, apellido "
-                   + "FROM meseros WHERE idUsuario = ?";
+        String sql = "SELECT " + COLUMNAS + " FROM meseros WHERE idUsuario = ?";
 
         try (Connection con = ConexionBD.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -27,15 +27,27 @@ public class MeseroDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    boolean activo = rs.getInt("idEstado") == ESTADO_ACTIVO;
-                    return new Mesero(rs.getInt("id"), rs.getInt("idUsuario"),
-                            rs.getString("nombre"), rs.getString("apellido"), activo);
+                    return crearMesero(rs);
                 }
             }
         }
-        return null;   // ese usuario no es mesero
+        return null; 
     }
 
+    public List<Mesero> listar() throws SQLException {
+        String sql = "SELECT " + COLUMNAS + " FROM meseros ORDER BY nombre, apellido";
+        List<Mesero> meseros = new ArrayList<>();
+
+        try (Connection con = ConexionBD.getConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                meseros.add(crearMesero(rs));
+            }
+        }
+        return meseros;
+    }
 
     public void insertar(int idUsuario, String nombre, String apellido) throws SQLException {
         String sql = "INSERT INTO meseros (idUsuario, idEstado, nombre, apellido) VALUES (?, ?, ?, ?)";
@@ -49,5 +61,27 @@ public class MeseroDAO {
             ps.setString(4, apellido);
             ps.executeUpdate();
         }
+    }
+
+    public void actualizar(Mesero mesero) throws SQLException {
+        String sql = "UPDATE meseros SET nombre = ?, apellido = ?, telefono = ?, idEstado = ? WHERE id = ?";
+
+        try (Connection con = ConexionBD.getConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, mesero.getNombre());
+            ps.setString(2, mesero.getApellido());
+            ps.setString(3, mesero.getTelefono());  
+            ps.setInt(4, mesero.isActivo() ? ESTADO_ACTIVO : ESTADO_INACTIVO);
+            ps.setInt(5, mesero.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    private Mesero crearMesero(ResultSet rs) throws SQLException {
+        boolean activo = rs.getInt("idEstado") == ESTADO_ACTIVO;
+        return new Mesero(rs.getInt("id"), rs.getInt("idUsuario"),
+                rs.getString("nombre"), rs.getString("apellido"),
+                rs.getString("telefono"), activo);
     }
 }
