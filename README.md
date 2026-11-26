@@ -12,6 +12,7 @@ Proyecto #8 del curso de Programación Orientada a Objetos: aplicación de escri
 - Caja: cobro de pedidos con efectivo o tarjeta (libera la mesa). Desglosa el IVA (16%, ya incluido en los precios) y genera el ticket, que se puede imprimir o guardar como .txt.
 - Reportes: ventas por día, platillos más vendidos, ventas por mesero, ingresos por método de pago y pedidos por estado.
 - Usuarios y roles: el Super Administrador agrega, edita y elimina usuarios y les asigna un rol.
+- Meseros: el Super Administrador consulta el teléfono y el estado (Activo/Inactivo) de cada mesero y los edita. Un mesero inactivo no puede tomar pedidos.
 - El Super Administrador tiene acceso a todos los módulos. Si todavía no está registrado como mesero, se registra solo la primera vez que toma un pedido.
 - Interfaz con barra lateral: al elegir un módulo, su contenido aparece a la derecha dentro de la misma ventana. Tema negro y dorado con el logo del restaurante.
 
@@ -38,6 +39,7 @@ sistema_restaurante
 ├── src        (código fuente: conexion, dao, modelo, servicio, vista, App.java)
 ├── test       (pruebas JUnit: modelo y servicio)
 ├── recursos   (logo del restaurante: logo.png)
+├── informe    (informe en LaTeX y PDF)
 ├── .vscode    (configuración de VS Code)
 └── sistema_restaurante_mysql.sql   (base de datos con datos de ejemplo)
 ```
@@ -72,32 +74,32 @@ Los drivers (`lib`) ya están incluidos en el repositorio; no hay que instalarlo
 
 ## Usuarios de ejemplo
 
-Vienen en la tabla `usuarios` del archivo SQL:
+Vienen en la tabla `usuarios` del archivo SQL (la base tiene 12 tablas y más usuarios de ejemplo; estos son los principales de cada rol):
 
 | Rol | Usuario | Contraseña | Qué puede hacer |
 |---|---|---|---|
-| Super Administrador | Ariadna Cornejo | 123 | Todo (incluye tomar pedidos y cobrar) |
-| Recepcionista | Maria Lopez | 321 | Asignar y liberar mesas |
-| Mesero | Carlos Vallarta | 098 | Registrar y cancelar sus pedidos |
-| Cocina | Jessica Cruz | 890 | Ver pedidos y marcarlos listos |
-| Administrador | Juan Perez | 456 | Caja (cobrar y ticket) |
+| Super Administrador | Ariadna Cornejo | 12345678 | Todo (incluye tomar pedidos y cobrar) |
+| Recepcionista | Maria Lopez | 32109876 | Asignar y liberar mesas |
+| Mesero | Carlos Vallarta | 09876543 | Registrar y cancelar sus pedidos |
+| Cocina | Jessica Cruz | 89012345 | Ver pedidos y marcarlos listos |
+| Administrador | Juan Perez | 45678901 | Caja (cobrar y ticket) |
 
 ## Pruebas unitarias (JUnit 5)
 
-Hay 87 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos, platillos, usuarios, cifrado de contraseñas, IVA y ticket, y usuarios recordados).
+Hay 94 pruebas en `test/modelo` y `test/servicio`. No necesitan base de datos: cubren las validaciones del modelo y las reglas de los servicios (permisos por rol, login, mesas, pedidos, platillos, usuarios, meseros, cifrado de contraseñas, IVA y ticket, y usuarios recordados).
 
-Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **87/87 en verde**.
+Para correrlas en VS Code abre el panel **Testing** (icono del matraz) y pulsa **Run Tests**. El resultado esperado es **94/94 en verde**.
 
 ## Notas y limitaciones conocidas
 
-- Las contraseñas se guardan cifradas con hash SHA-256 en la tabla `usuarios` (nunca en texto plano). Mejora pendiente: agregar una "sal" aleatoria por usuario.
+- Las contraseñas se guardan cifradas con hash SHA-256 en la tabla `usuarios` (nunca en texto plano; el script SQL las cifra con `SHA2(...,256)`). Mejora pendiente: agregar una "sal" aleatoria por usuario.
 - La contraseña de MySQL está escrita en `ConexionBD.java`; no debe reutilizarse una contraseña personal.
 - Los usuarios recordados del login se guardan en un archivo de la carpeta personal de Windows (`.la_comarca_usuarios.txt`), fuera del proyecto. Solo contiene nombres de usuario.
-- Los diagramas ER y UML entregados anteriormente no reflejan los últimos cambios de la base de datos.
+- El informe del proyecto (LaTeX y PDF) está en la carpeta `informe/`.
 
 ## Equipo
 
-- Cornejo Malfavon Ariadna Alejandra
-- Cervantes Perez Melanie Alejandra
-- Sanchez Mendoza Issac Efren
-- Santiago Diaz Acosta
+- Cornejo Malfavón Ariadna Alejandra
+- Cervantes Pérez Melanie Alejandra
+- Sánchez Mendoza Issac Efrén
+- Díaz Acosta Santiago
